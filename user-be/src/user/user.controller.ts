@@ -4,37 +4,39 @@ import {
   Post,
   Body,
   Param,
-  Patch,
   Delete,
+  Patch,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
+import { User } from './user.entity';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: any) {
-    return this.userService.create(createUserDto);
+  createUser(@Body() user: User): User {
+    return this.userService.createUser(user);
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: any) {
-    return this.userService.update(id, updateUserDto);
+  getUserList(@Query('search') search: string): User[] {
+    return this.userService.getUserList(search);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(id);
+  deleteUserById(@Param('id') id: string): boolean {
+    return this.userService.deleteUserById(Number(id));
+  }
+
+  @Get(':id')
+  getUserById(@Param('id') id: string): User {
+    return this.userService.getUserById(Number(id));
+  }
+
+  @Patch(':id')
+  updateUserById(@Param('id') id: string, @Body() updatedUser: User): boolean {
+    return this.userService.updateUserById(Number(id), updatedUser);
   }
 }
