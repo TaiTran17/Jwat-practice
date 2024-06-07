@@ -1,6 +1,8 @@
 import Modal from "@/pages/components/Modal";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
+import { debounce } from "lodash";
+import TanTable from "@/pages/components/TanTable";
 
 const UserTable = () => {
   const [userData, setUserData] = useState([]);
@@ -27,17 +29,21 @@ const UserTable = () => {
         throw new Error("Failed to fetch data");
       }
       const data = await response.json();
-      console.log("Fetched user data:", data); // Log the fetched user data
       setUserData(data);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   };
 
-  const handleSearchChange = (e) => {
+  const handleSearchChange = (e: any) => {
     setSearchTerm(e.target.value);
-    fetchData(e.target.value);
+    debouncedFetchData(e.target.value);
   };
+
+  const debouncedFetchData = useCallback(
+    debounce((term) => fetchData(term), 300),
+    []
+  );
 
   useEffect(() => {
     fetchData();
@@ -84,26 +90,6 @@ const UserTable = () => {
     }
   };
 
-  //   const handleUpdate = async (userId: string) => {
-  //     try {
-  //       const response = await fetch(`http://localhost:3000/users/${userId}`);
-  //       if (!response.ok) {
-  //         throw new Error("Failed to fetch user data");
-  //       }
-  //       const userData = await response.json();
-  //       setSelectedUser(userData);
-  //       setIsUpdate(true);
-  //       setIsModalOpen(true);
-  //     } catch (error) {
-  //       console.error("Error fetching user data:", error);
-  //       toast.error(
-  //         error.message || "Failed to fetch user data. Please try again."
-  //       );
-  //     }
-  //   };
-
-  console.log(userData);
-
   return (
     <>
       <div className="flex flex-col gap-4 items-center justify-center">
@@ -121,62 +107,15 @@ const UserTable = () => {
           placeholder="Search users..."
           className="mb-4 p-2 border border-slate-400"
         />
+
         {userData ? (
-          <>
-            <table className="border-collapse border border-slate-400 ">
-              <thead>
-                <tr>
-                  <th className="border border-slate-300 p-4">Username</th>
-                  <th className="border border-slate-300 p-4">Fullname</th>
-                  <th className="border border-slate-300 p-4">Role</th>
-                  <th className="border border-slate-300 p-4">Project</th>
-                  <th className="border border-slate-300 p-4">Active</th>
-                  <th className="border border-slate-300 p-4">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {userData.length > 0
-                  ? userData.map((user) => (
-                      <tr key={user.id}>
-                        <td className="border border-slate-300 p-4 text-center">
-                          {user.username}
-                        </td>
-                        <td className="border border-slate-300 p-4 text-center">
-                          {user.fullname}
-                        </td>
-                        <td className="border border-slate-300 p-4 text-center">
-                          {user.role}
-                        </td>
-                        <td className="border border-slate-300 p-4 text-center">
-                          {user.project}
-                        </td>
-                        <td className="border border-slate-300 p-4 text-center">
-                          {user.activeYn ? "Yes" : "No"}
-                        </td>
-                        <td className="border border-slate-300 p-4 text-center flex gap-5">
-                          <button
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full"
-                            onClick={() => handleUpdate(user.id)}
-                          >
-                            {" "}
-                            Update
-                          </button>
-                          <button
-                            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full"
-                            onClick={() => handleDelete(user.id)}
-                          >
-                            {" "}
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  : ""}
-              </tbody>
-            </table>
-          </>
+          <TanTable
+            userData={userData}
+            handleDelete={handleDelete}
+            handleUpdate={handleUpdate}
+          />
         ) : (
-          "Loading...."
+          "Loading..."
         )}
 
         <Modal
